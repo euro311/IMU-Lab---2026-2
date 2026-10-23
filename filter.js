@@ -48,17 +48,18 @@ function filter(accDataPoint, gyroDataPoint) {
   
   F=Math.sqrt(Math.pow(xAccNew, 2) + Math.pow(yAccNew, 2) +Math.pow(zAccNew, 2)) - 9.81
   let Fdisplay=F*20+170 //Adjusted for graphing purposes
-  //plotOnRedLine(F)
+  //plotOnRedLine(Fdisplay)
   // console.log(F)
 
   // 1A.2  - EWMA Exponential Weighted Moving Average
   
-  let alfa1 = 0.3; // try different alfa values and observe the result
+  let alfa1 = 0.5; // try different alfa values and observe the result
    yFirst=alfa1*oldYFirst+(1-alfa1)*Fdisplay
+   oldYFirst=yFirst
    //plotOnBlueLine(yFirst)
   
   // 1A.3 - Add an additional EWMA filter with both an alfa and beta value
-  let alfa2=0.6 
+  let alfa2 = 0.1
   let beta = 0.9
 
    if (Fdisplay > FOld) {ySecond = alfa2 * oldYSecond + (1 - alfa2) * Fdisplay;}
@@ -114,33 +115,35 @@ function filter(accDataPoint, gyroDataPoint) {
   dy=yAccNew - yAccOld
   dz=zAccNew - zAccOld
 
+  // 1A In depth assignment(optional)
+  // Detect if Polar verity sensor is continually shaken for more than 1 second
+  
   let L = Math.sqrt(Math.pow(dx,2) 
   +Math.pow(dy,2) 
   +Math.pow(dz,2))
-    
+  //console.log(L , "L")
   xAccOld = xAccNew
   yAccOld = yAccNew
   zAccOld = zAccNew
 
-  // 1A In depth assignment(optional)
-  // Detect if Polar verity sensor is continually shaken for more than 1 second
-
-  let threshold = 0.5
-  let loadSamples=0
+  let threshold = 20
   if (L > threshold) {
-    loadSamples++;
-  } else {
-    loadSamples = 0;
+    NumberOfSamples++;
+    //console.log("Samples:",NumberOfSamples)
+  } 
+  else {
+    NumberOfSamples = 0;
     shakingDetected = false;
   }
 
-  if (loadSamples > 61 && !shakingDetected) {
-    console.log("Shaking detected for more than 1 second!");
+  if (NumberOfSamples > 52 && !shakingDetected) {
+    //console.log("Shaking detected for more than 1 second!");
     shakingDetected = true;
   }
 
   // 1B Rotation
   // 1B.1 Calculate the roll from the Accelerometer on the Polar verity and display the result
+  
   dT=1/61 // Sample rate of phone recording.
   accRoll = Math.atan(xAccNew / Math.sqrt(Math.pow(yAccNew,2) + Math.pow(zAccNew,2))) * 180 / Math.PI;
   plotOnBlueLine(accRoll);
@@ -151,9 +154,9 @@ function filter(accDataPoint, gyroDataPoint) {
   plotOnRedLine(gyroRoll);
 
   // 1B.3 Apply a Complimenter filter that fuses the Acceleromter and Gyro data, display and compare the result.
-  let alfa3=0.3
+  let alfa3=0.5
   comRoll=alfa3*(comRoll+yGyroNew*dT)+(1-alfa3)*accRoll
-  plotOnGreenLine(comRoll);
+  //plotOnGreenLine(comRoll);
 
   // 1B In depth assignment(optional)
   // Write a code that calculates pitch and yaw that also takes the magnetometer for the yaw into account 
